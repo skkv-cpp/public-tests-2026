@@ -1,0 +1,9 @@
+# Temporary files.
+*.c
+*.exe
+*.json
+*.out
+
+# Python cache.
+__pycache__/
+*.pyc
