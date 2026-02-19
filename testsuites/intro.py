@@ -34,7 +34,7 @@ class __Intro(Testsuite):
 						return Verdict(VerdictErrno.ERROR_INVALID_FORMAT, f"found unexpected space characters in stdout")
 
 					actual = int(line)
-					expected = self.__a + self.__b
+					expected = (self.__a + self.__b) & 0xFFFFFFFF
 
 					if actual != expected:
 						return Verdict(VerdictErrno.ERROR_ASSERTION, f"{self.__a} + {self.__b} = {expected}, (actual: {actual})", "check math", True)
@@ -59,8 +59,8 @@ class __Intro(Testsuite):
 		def t(a: int, b: int):
 			tester.add(__test(a, b))
 
-		for a in range(-5, 10):
-			for b in range(6, 9):
+		for a in range(-5, 5):
+			for b in range(-5, 5):
 				t(a, b)
 
 		return tester
