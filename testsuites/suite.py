@@ -5,6 +5,7 @@ import json
 import enum
 
 from typing import List, Optional, Tuple, Union, Callable, TypeVar, Any, Dict, Set, Iterable
+from decimal import Decimal
 from abc import abstractmethod, ABC
 
 T = TypeVar('T')
@@ -51,6 +52,9 @@ class VerdictErrno(enum.Enum):
 	ERROR_STDERR_IS_NOT_EMPTY = "standard error output is not empty"
 	ERROR_TYPE_ERROR = "type error"
 	ERROR_INVALID_FORMAT = "invalid format"
+	ERROR_FILE_NOT_FOUND = "file not found"
+	ERROR_STDOUT_EMPTY = "standard output is empty"
+	ERROR_STDOUT_IS_NOT_EMPTY = "standard output is not empty"
 
 class Verdict:
 	def __init__(self, verdict_errno: VerdictErrno, what: Optional[str] = None, extended_what: Union[List[str], str] = [], extended_what_is_hint: bool = False):
@@ -81,6 +85,9 @@ class Verdict:
 		if self.__what is None:
 			return "no additional information"
 		return self.__what
+
+	def what_presented(self) -> bool:
+		return not self.__what is None
 
 def ok() -> Verdict:
 	return Verdict(VerdictErrno.ERROR_SUCCESS)
@@ -227,14 +234,16 @@ class Test:
 
 		if policy == ReturnCodePolicy.ShouldBeZero:
 			if actual_returncode != 0:
-				return Verdict(VerdictErrno.ERROR_RETURNCODE, f"expected {0}, but actual is {actual_returncode}")
+				what_suffix = f"" if is_empty_stderr else f" (below is what was in the stderr)"
+				return Verdict(VerdictErrno.ERROR_RETURNCODE, f"expected {0}, but actual is {actual_returncode}{what_suffix}", c_stderr)
 		elif policy == ReturnCodePolicy.ShouldNotBeZero:
 			if actual_returncode == 0:
 				return Verdict(VerdictErrno.ERROR_RETURNCODE, f"expected non-zero returncode, but actual is {actual_returncode}")
-		elif policy == ReturnCodePolicy.MatchIfPresented and run.expected_returncode_presented():
+		elif policy == ReturnCodePolicy.MatchIfPresented:
 			expected_returncode = run.get_expected_returncode()
 			if actual_returncode != expected_returncode:
-				return Verdict(VerdictErrno.ERROR_RETURNCODE, f"expected {expected_returncode}, but actual is {actual_returncode}")
+				what_suffix = f"" if is_empty_stderr else f" (below is what was in the stderr)"
+				return Verdict(VerdictErrno.ERROR_RETURNCODE, f"expected {expected_returncode}, but actual is {actual_returncode}{what_suffix}", c_stderr)
 
 		return ok()
 
@@ -243,7 +252,8 @@ class Test:
 
 	def __print_verdict(self, i: int, verdict: Verdict, log: Log):
 		log.println(f"{self.__base_message(i)} FAILED.")
-		log.println(f"{verdict.verdict_message().capitalize()}: {verdict.what()}.")
+		suffix = f": {verdict.what()}" if verdict.what_presented() else f""
+		log.println(f"{verdict.verdict_message().capitalize()}{suffix}.")
 		lines = verdict.extended_what()
 		if verdict.extended_what_is_hint():
 			assert len(lines) == 1
@@ -318,31 +328,33 @@ class Result:
 	def __get_total_by_category(self, category: str) -> int:
 		total = 0
 
-		for test, verdict in zip(self.__tests, self.__verdicts):
+		for test, _ in zip(self.__tests, self.__verdicts):
 			if category in test.categories():
 				total += 1
 
 		return total
 
-	def __get_result_by_category(self, category: str) -> float:
+	def __get_result_by_category(self, category: str) -> Decimal:
 		total = self.__get_total_by_category(category)
 		passed = self.__get_passed_by_category(category)
-		return passed / total
+		if total == 0:
+			return Decimal(0.0)
+		return Decimal(passed) / Decimal(total)
 
-	def __calculate_total(self, coefficients: Dict[str, float]) -> float:
-		total = 0.0
+	def __calculate_total(self, coefficients: Dict[str, float]) -> Decimal:
+		total = Decimal(0.0)
 
 		for category, coefficient in coefficients.items():
 			result = self.__get_result_by_category(category)
-			total += result * coefficient
+			total += result * Decimal(coefficient)
 
 		return total
 
-	def __get_results_by_categories(self, categories: Iterable[str]) -> Dict[str, float]:
-		results: Dict[str, float] = {}
+	def __get_results_by_categories(self, categories: Iterable[str]) -> Dict[str, str]:
+		results: Dict[str, str] = {}
 
 		for category in categories:
-			results[category] = self.__get_result_by_category(category)
+			results[category] = str(self.__get_result_by_category(category))
 
 		return results
 
@@ -384,7 +396,7 @@ class Result:
 
 		j: Dict[str, Any] = {}
 
-		j["result"] = self.__calculate_total(coefficients)
+		j["result"] = str(self.__calculate_total(coefficients))
 		j["categories"] = self.__get_results_by_categories(categories)
 		j["tests"] = self.__get_results()
 

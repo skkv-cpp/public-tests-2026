@@ -3,6 +3,10 @@
 *.exe
 *.json
 *.out
+*.txt
+
+# User created files.
+*.user
 
 # Python cache.
 __pycache__/
