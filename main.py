@@ -4,12 +4,13 @@ import argparse
 
 import testsuites.intro as intro
 import testsuites.sparse_matrix as sparse_matrix
+import testsuites.tiff as tiff
 
 from testsuites import Testsuite
 from typing import Dict, Any, List
 
 __TESTSUITES: List[Testsuite] = [
-	intro.instance, sparse_matrix.instance
+	intro.instance, sparse_matrix.instance, tiff.instance
 ]
 
 __SUITENAMES: List[str] = [t.name() for t in __TESTSUITES]
