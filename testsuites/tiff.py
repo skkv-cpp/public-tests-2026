@@ -88,14 +88,14 @@ class __TIFF(Testsuite):
 			neg = returncode != ERROR_SUCCESS
 			returncode_policy = ReturnCodePolicy.ShouldBeZero if not neg else ReturnCodePolicy.MatchIfPresented
 			stderr_empty = not neg
-			run = Run(c_timeout = self.__TIMEOUT, c_stdin = None, c_args = [input_filename, output_filename], t_returncode_policy = returncode_policy, t_returncode = returncode, t_stderr_empty = stderr_empty)
+			run = Run(c_timeout = self.__TIMEOUT, c_stdin = None, c_args = [input_filename, output_filename], c_cwd = None, t_returncode_policy = returncode_policy, t_returncode = returncode, t_stderr_empty = stderr_empty)
 			expected = None
 			if not neg:
 				expected = __Expected(output_filename, reference_filename)
 			return run, expected
 
 		def __args_single_test(args: List[str]) -> SingleTest:
-			run = Run(c_timeout = self.__TIMEOUT, c_stdin = None, c_args = args, t_returncode_policy = ReturnCodePolicy.MatchIfPresented, t_returncode = ERROR_ARGUMENTS_INVALID, t_stderr_empty = False)
+			run = Run(c_timeout = self.__TIMEOUT, c_stdin = None, c_args = args, c_cwd = None, t_returncode_policy = ReturnCodePolicy.MatchIfPresented, t_returncode = ERROR_ARGUMENTS_INVALID, t_stderr_empty = False)
 			return run, None
 
 		def __neg_single_test(input_basename: str, returncode: int, output_filename_override: Optional[str]) -> SingleTest:

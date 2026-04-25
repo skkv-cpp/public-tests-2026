@@ -124,10 +124,11 @@ class ReturnCodePolicy(enum.Enum):
 	ShouldNotBeZero = 2
 
 class Run:
-	def __init__(self, c_timeout: Union[float, int], c_stdin: Optional[str], c_args: Optional[List[str]], t_returncode_policy: ReturnCodePolicy, t_returncode: Optional[int] = None, t_stdout: Optional[str] = None, t_stderr_empty: bool = True):
+	def __init__(self, c_timeout: Union[float, int], c_stdin: Optional[str], c_args: Optional[List[str]], c_cwd: Optional[str], t_returncode_policy: ReturnCodePolicy, t_returncode: Optional[int] = None, t_stdout: Optional[str] = None, t_stderr_empty: bool = True):
 		self.__c_timeout = float(c_timeout)
 		self.__c_stdin = c_stdin
 		self.__c_args = c_args
+		self.__c_cwd = c_cwd
 		self.__t_returncode_policy = t_returncode_policy
 		self.__t_returncode = t_returncode
 		self.__t_stdout = t_stdout
@@ -176,7 +177,7 @@ class Run:
 		if self.args_presented():
 			cmd += self.get_args()
 
-		child = subprocess.Popen(cmd, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE, universal_newlines = True)
+		child = subprocess.Popen(cmd, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE, universal_newlines = True, cwd = self.__c_cwd)
 		start = now()
 		try:
 			stdout, stderr = child.communicate(input = self.__c_stdin, timeout = self.__c_timeout * timeout_factor)

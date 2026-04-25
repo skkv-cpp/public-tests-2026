@@ -4,6 +4,7 @@
 *.json
 *.out
 *.txt
+*.log
 
 # User created files.
 *.user
@@ -11,3 +12,7 @@
 # Python cache.
 __pycache__/
 *.pyc
+
+# Testing data.
+!testdata/live1/**/*.txt
+!testdata/live1/**/*.log

@@ -207,7 +207,7 @@ class __SparseMatrix(Testsuite):
 			input2_filename = __make_path_to(parent, f"input2.mtx")
 			output_filename = __make_path_to(parent, f"output.mtx.user")
 			expected_filename = __make_path_to(parent, f"output.mtx")
-			run = Run(c_timeout = self.__TIMEOUT, c_stdin = None, c_args = [operation, output_filename, input1_filename, input2_filename], t_returncode_policy = ReturnCodePolicy.ShouldBeZero)
+			run = Run(c_timeout = self.__TIMEOUT, c_stdin = None, c_args = [operation, output_filename, input1_filename, input2_filename], c_cwd = None, t_returncode_policy = ReturnCodePolicy.ShouldBeZero)
 			expected = __Expected(output_filename, expected_filename)
 			return (run, expected)
 
@@ -215,12 +215,12 @@ class __SparseMatrix(Testsuite):
 			input1_filename = __make_path_to(parent, f"input1.mtx")
 			output_filename = __make_path_to(parent, f"output.mtx.user")
 			expected_filename = __make_path_to(parent, f"output.mtx")
-			run = Run(c_timeout = self.__TIMEOUT, c_stdin = None, c_args = ["|", output_filename, input1_filename], t_returncode_policy = ReturnCodePolicy.ShouldBeZero)
+			run = Run(c_timeout = self.__TIMEOUT, c_stdin = None, c_args = ["|", output_filename, input1_filename], c_cwd = None, t_returncode_policy = ReturnCodePolicy.ShouldBeZero)
 			expected = __DetExpected(output_filename, expected_filename)
 			return (run, expected)
 
 		def __single_fail(args: List[str]) -> SingleTest:
-			run = Run(c_timeout = self.__TIMEOUT, c_stdin = None, c_args = args, t_returncode_policy = ReturnCodePolicy.MatchIfPresented, t_returncode = 1, t_stderr_empty = False)
+			run = Run(c_timeout = self.__TIMEOUT, c_stdin = None, c_args = args, c_cwd = None, t_returncode_policy = ReturnCodePolicy.MatchIfPresented, t_returncode = 1, t_stderr_empty = False)
 			return (run, None)
 
 		def __sequence(operation: str, parent: str) -> List[SingleTest]:
